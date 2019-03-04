@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Search</title>
+  <style>
+    #matches {
+      position: absolute;
+      top: 0;
+      right: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Dividend:</h1>
+  <h3 id="dividend"></h3>
+  <h1>Divisor:</h1>
+  <h3 id="divisor"></h3>
+  <h1>Quotient:</h1>
+  <h3 id="quotient"></h3>
+
+  <script>
+      fetch("http://localhost:8080/api/v1/dividend")
+        .then(res => res.json())
+        .then(json => document.getElementById('dividend').innerHTML = json.dividend)
+        .then(() => fetch("http://localhost:8080/api/v1/divisor"))
+        .then(res => res.json())
+        .then(json => document.getElementById('divisor').innerHTML = json.divisor)
+        .then(() => fetch("http://localhost:8080/api/v1/quotient"))
+        .then(res => res.json())
+        .then(json => document.getElementById('quotient').innerHTML = json.quotient)
+        .catch(error => console.error(`Error in fetch: ${error.message}`))
+  </script>
+</body>
+
+</html>

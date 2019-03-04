@@ -1,0 +1,18 @@
+version: 1
+task_definition:
+  services:
+    web:
+      cpu_shares: 100
+      mem_limit: 104857600
+    quotient: 
+        cpu_shares: 100
+        mem_limit: 104857600
+    dividend: 
+        cpu_shares: 100
+        mem_limit: 104857600
+    divisor: 
+        cpu_shares: 100
+        mem_limit: 104857600
+    nginx: 
+        cpu_shares: 100
+        mem_limit: 104857600
