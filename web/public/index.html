@@ -6,34 +6,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Search</title>
-  <style>
-    #matches {
-      position: absolute;
-      top: 0;
-      right: 100px;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
-  <h1>Dividend:</h1>
-  <h3 id="dividend"></h3>
-  <h1>Divisor:</h1>
-  <h3 id="divisor"></h3>
-  <h1>Quotient:</h1>
-  <h3 id="quotient"></h3>
+<body onload="displayLogs()">
+  <form onsubmit="return calculateAndSave()">
+    <h3>Dividend:</h3>
+    <input id="dividend" type="text" required>
+    <h3>Divisor:</h3>
+    <input id="divisor" type="text" required>
+    <div id="calculate">
+      <input type="submit" value="Calculate">
+    </div>
+  </form>
+  <h2 id="quotient-block">Quotient:
+      <span id="quotient"></span>
+  </h2>
+  <button id="clear" onClick="return clearValues()">Clear</button>
+
+  <div id="log-container">
+    <h1 id="log-header">Calculation Log</h1>
+    <ul id="log"></ul>
+  </div>
 
   <script>
-      fetch("http://localhost:8080/api/v1/dividend")
+    const calculateAndSave = () => { 
+      const dividend = parseInt(document.getElementById("dividend").value);
+      const divisor = parseInt(document.getElementById("divisor").value);
+      const quotient = dividend / divisor;
+      document.getElementById("quotient").innerHTML = quotient;
+      var dividendId;
+      var divisorId;
+
+      addDividend(dividend)
         .then(res => res.json())
-        .then(json => document.getElementById('dividend').innerHTML = json.dividend)
-        .then(() => fetch("http://localhost:8080/api/v1/divisor"))
+        .then(json => dividendId = json.data.addDividend.id)
+        .then(() => addDivisor(divisor))
         .then(res => res.json())
-        .then(json => document.getElementById('divisor').innerHTML = json.divisor)
-        .then(() => fetch("http://localhost:8080/api/v1/quotient"))
+        .then(json => divisorId = json.data.addDivisor.id)
+        .then(() => addQuotient(dividendId, divisorId, quotient))
         .then(res => res.json())
-        .then(json => document.getElementById('quotient').innerHTML = json.quotient)
+        .then(json => {
+          if (!json.errors) {
+            appendToLog(dividend, divisor, json.data.addQuotient.quotient);
+          }
+        })
         .catch(error => console.error(`Error in fetch: ${error.message}`))
+
+      return false;
+    };
+
+    const addDividend = dividend => fetch(
+      'http://localhost:8080/api/v1/dividend', 
+      {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `mutation { addDividend(dividend: ${dividend}) { id } }`})
+      }
+    );
+
+    const addDivisor = divisor => fetch(
+      'http://localhost:8080/api/v1/divisor', 
+      {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `mutation { addDivisor(divisor: ${divisor}) { id } }`})
+      }
+    );
+
+    const addQuotient = (dividendId, divisorId, quotient) => fetch(
+      'http://localhost:8080/api/v1/quotient', 
+      {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `mutation { addQuotient(dividendId: ${dividendId}, divisorId: ${divisorId}, quotient: ${quotient}) { quotient } }`})     
+      }
+    );
+
+    const getQuotients = () => fetch(
+      'http://localhost:8080/api/v1/quotient', 
+      {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `query { quotients { dividend divisor quotient } }`})
+      }
+    );
+
+    const displayLogs = () => {
+      getQuotients()
+        .then(res => res.json())
+        .then(json => {
+          const calculations  = json.data.quotients;
+          calculations.forEach(calc => appendToLog(calc.dividend, calc.divisor, calc.quotient));
+        })
+    };
+
+    const appendToLog = (dividend, divisor, quotient) => {
+      var node = document.createElement("LI");
+      var textNode = document.createTextNode(`${dividend} / ${divisor} = ${quotient}`)
+      node.appendChild(textNode);
+      document.getElementById("log").appendChild(node);
+    };
+
+    const clearValues = () => {
+      document.getElementById("dividend").value = '';
+      document.getElementById("divisor").value = '';
+      document.getElementById("quotient").innerHTML = '';
+    };
+    
   </script>
 </body>
 

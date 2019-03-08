@@ -12,18 +12,43 @@ services:
     image: 'gpica/microservice-division_quotient'
     ports:
       - "3003:3000"
+    depends_on: 
+      - db
+    environment: 
+    - POSTGRES_DB_URI=postgres://${pg_user}:${pg_password}@db/${pg_db}
 
   dividend:
     build: './dividend'
     image: 'gpica/microservice-division_dividend'
     ports:
       - "3001:3000"
+    depends_on: 
+      - db 
+    environment: 
+    - POSTGRES_DB_URI=postgres://${pg_user}:${pg_password}@db/${pg_db}
+
 
   divisor:
     build: './divisor'
     image: 'gpica/microservice-division_divisor'
     ports:
       - "3002:3000"
+    depends_on: 
+      - db
+    environment: 
+    - POSTGRES_DB_URI=postgres://${pg_user}:${pg_password}@db/${pg_db}
+
+  db: 
+    image: postgres:9.4
+    container_name: db
+    environment: 
+      POSTGRES_DB: ${pg_db}
+      POSTGRES_USER: ${pg_user}
+      POSTGRES_PASSWORD: ${pg_password}
+    ports: 
+      - "5432:5432"
+    volumes: 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   nginx:
     image: nginx:latest
